@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Tujuan Pembelajaran & Bank Soal Literasi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Merriweather (untuk teks bacaan agar nyaman dibaca) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar untuk kenyamanan membaca */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .shadow-sm, .shadow-md, .shadow-lg {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-sm">
+                    <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Generator TP & Bank Soal Literasi</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Perangkat Ajar Kurikulum Merdeka & Latihan Asesmen Membaca</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleMobileMenu()" class="lg:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    <i data-lucide="menu" class="w-4 h-4"></i>
+                    <span>Pilih Materi</span>
+                </button>
+                <button onclick="copyAllMaterial()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm" title="Salin seluruh TP, Trik, Soal, dan Pembahasan ke Clipboard">
+                    <i data-lucide="clipboard-copy" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Salin Semua (Modul Ajar)</span>
+                    <span class="sm:hidden">Salin Semua</span>
+                </button>
+                <button onclick="window.print()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition" title="Cetak halaman ini">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span>Cetak</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+
+            <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
+            <aside id="sidebar-nav" class="hidden lg:block w-full lg:w-80 shrink-0 no-print">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Daftar Kompetensi (10)</span>
+                        <span class="text-xs font-medium bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">30 Soal</span>
+                    </div>
+                    <div id="competency-menu" class="space-y-4">
+                        <!-- Menu items injected via JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Dropdown Selector (Always visible on small screens for quick access) -->
+            <div class="lg:hidden no-print">
+                <label for="mobile-subcomp-select" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Pilih Subkompetensi Literasi:</label>
+                <select id="mobile-subcomp-select" onchange="selectSubcompetency(parseInt(this.value))" class="w-full rounded-xl border-slate-300 bg-white py-3 px-4 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border">
+                    <!-- Options injected via JS -->
+                </select>
+            </div>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 min-w-0 space-y-6" id="main-content">
+                <!-- Header Card Subkompetensi -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span id="badge-kompetensi" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            <!-- Kompetensi Utama -->
+                        </span>
+                        <span id="badge-nomor" class="text-xs font-medium text-slate-400">
+                            Subkompetensi 1 dari 10
+                        </span>
+                    </div>
+                    <h2 id="title-subkompetensi" class="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                        <!-- Judul Subkompetensi -->
+                    </h2>
+                </div>
+
+                <!-- Section 1: Tujuan Pembelajaran (Kurikulum Merdeka / ABCD) -->
+                <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-5 py-3.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-white">
+                            <i data-lucide="target" class="w-5 h-5"></i>
+                            <h3 class="font-semibold text-sm sm:text-base">Tujuan Pembelajaran (Format Kurikulum Merdeka / ABCD)</h3>
+                        </div>
+                        <button onclick="copyTP()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/15 hover:bg-white/25 text-white transition backdrop-blur-sm no-print">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            <span>Salin Tujuan Pembelajaran</span>
+                        </button>
+                    </div>
+                    <div class="p-5 sm:p-6 space-y-4">
+                        <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4">
+                            <p id="tp-full-text" class="text-slate-800 text-sm sm:text-base leading-relaxed font-medium">
+                                <!-- Teks TP Lengkap -->
+                            </p>
+                        </div>
+                        <!-- Breakdown ABCD -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span class="font-bold text-indigo-700 block mb-0.5">A - Audience (Peserta Didik)</span>
+                                <span id="tp-a" class="text-slate-600"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span class="font-bold text-emerald-700 block mb-0.5">B - Behavior (Perilaku/Kompetensi)</span>
+                                <span id="tp-b" class="text-slate-600"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span class="font-bold text-amber-700 block mb-0.5">C - Condition (Kondisi/Lingkup Materi)</span>
+                                <span id="tp-c" class="text-slate-600"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span class="font-bold text-rose-700 block mb-0.5">D - Degree (Tingkat Keberhasilan)</span>
+                                <span id="tp-d" class="text-slate-600"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Trik & Strategi Menyelesaikan Soal (Jurus Jitu) -->
+                <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="bg-amber-50 border-b border-amber-100 px-5 py-3.5 flex items-center gap-2 text-amber-900">
+                        <i data-lucide="zap" class="w-5 h-5 text-amber-600"></i>
+                        <h3 class="font-bold text-sm sm:text-base">Jurus Jitu: Trik & Strategi Menyelesaikan Soal</h3>
+                    </div>
+                    <div class="p-5 sm:p-6 space-y-5">
+                        <!-- Langkah Taktis -->
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
+                                <i data-lucide="footprints" class="w-4 h-4 text-indigo-500"></i> Langkah-Langkah Taktis
+                            </h4>
+                            <ol id="trik-langkah" class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+                                <!-- List langkah -->
+                            </ol>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <!-- Kata Kunci -->
+                            <div class="bg-emerald-50/60 border border-emerald-200/70 rounded-xl p-4">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2 flex items-center gap-1.5">
+                                    <i data-lucide="key" class="w-4 h-4 text-emerald-600"></i> Kata Kunci Soal / Teks
+                                </h4>
+                                <p id="trik-katakunci" class="text-sm text-emerald-950 leading-relaxed"></p>
+                            </div>
+                            <!-- Jebakan yang Harus Dihindari -->
+                            <div class="bg-rose-50/60 border border-rose-200/70 rounded-xl p-4">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-rose-800 mb-2 flex items-center gap-1.5">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i> Waspada Jebakan Pengecoh
+                                </h4>
+                                <p id="trik-jebakan" class="text-sm text-rose-950 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Bank Soal Latihan Interaktif & Pembahasan -->
+                <section class="space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="bg-emerald-100 text-emerald-700 p-2 rounded-lg">
+                                <i data-lucide="file-question" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base">Latihan Soal Interaktif (3 Butir)</h3>
+                                <p class="text-xs text-slate-500">Klik opsi jawaban untuk menguji pemahaman, lalu cek pembahasan detail.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 no-print">
+                            <button onclick="resetQuiz()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                <span>Reset Jawaban</span>
+                            </button>
+                            <button id="btn-toggle-all-exp" onclick="toggleAllExplanations()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                <span>Tampilkan Semua Pembahasan</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Container 3 Soal -->
+                    <div id="questions-container" class="space-y-6">
+                        <!-- Questions injected via JS -->
+                    </div>
+                </section>
+
+                <!-- Bottom Navigation (Prev / Next Subkompetensi) -->
+                <div class="flex items-center justify-between pt-2 pb-8 no-print">
+                    <button id="btn-prev" onclick="navigateSubcomp(-1)" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Sebelumnya</span>
+                    </button>
+                    <button id="btn-next" onclick="navigateSubcomp(1)" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:pointer-events-none transition shadow-sm">
+                        <span>Subkompetensi Berikutnya</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Database Materi & Soal Lengkap (10 Subkompetensi x 3 Soal = 30 Soal Berkualitas Tinggi) -->
+    <script>
+        const literasiDatabase = [
+            // =========================================================================
+            // KOMPETENSI 1: PEMAHAMAN TEKSTUAL (Subkompetensi 1 - 4)
+            // =========================================================================
+            {
+                id: 0,
+                kompetensi: "1. Pemahaman Tekstual",
+                badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                subkompetensi: "Mengidentifikasi penggunaan kosakata umum dan khusus dalam berbagai bidang.",
+                tp: {
+                    full: "Melalui kegiatan membaca teks informasi dari berbagai bidang ilmu (sains, ekonomi, lingkungan, dan teknologi), peserta didik mampu mengidentifikasi dan membedakan penggunaan kosakata umum serta kosakata khusus (istilah teknis) beserta maknanya sesuai konteks kalimat dengan tepat dan akurat.",
+                    a: "Peserta didik",
+                    b: "Mampu mengidentifikasi dan membedakan penggunaan kosakata umum serta kosakata khusus (istilah teknis)",
+                    c: "Melalui kegiatan membaca teks informasi dari berbagai bidang ilmu (sains, ekonomi, lingkungan, dan teknologi)",
+                    d: "Sesuai konteks kalimat dengan tepat dan akurat (minimal 85% ketepatan)"
+                },
+                trik: {
+                    langkah: [
+                        "Pahami perbedaan mendasar: <strong>Kosakata umum</strong> digunakan luas dalam percakapan sehari-hari dan memiliki makna luas (contoh: <em>rumah, sakit, air, uang</em>), sedangkan <strong>kosakata khusus (istilah)</strong> hanya dipakai pada bidang keilmuan tertentu dan bermakna spesifik (contoh: <em>inflasi, fotosintesis, abrasi</em>).",
+                        "Baca kalimat sebelum dan sesudah kata yang ditanyakan untuk menemukan <strong>petunjuk konteks</strong> (biasanya diikuti tanda koma, kata <em>yakni, yaitu, adalah,</em> atau tanda kurung).",
+                        "Cocokkan makna istilah dengan bidang teks yang dibahas (misalnya teks tentang kelautan akan memakai istilah geografi/biologi laut)."
+                    ],
+                    kataKunci: "Istilah teknis, makna kata, bidang kajian, kata serapan ilmiah, 'makna istilah ... pada paragraf tersebut adalah'.",
+                    jebakan: "Mengartikan kata khusus menggunakan makna denotatif sehari-hari atau tertukar dengan istilah dari bidang ilmu lain yang bunyinya mirip."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Informasi Bidang Lingkungan & Kelautan",
+                        judulTeks: "Ancaman Abrasi di Pesisir Utara Jawa",
+                        bacaan: "Perubahan iklim global memicu kenaikan permukaan air laut yang berdampak serius bagi wilayah pesisir utara Pulau Jawa. Banyak garis pantai mengalami <strong>abrasi</strong> parah akibat hilangnya sabuk hijau berupa hutan mangrove. Untuk mengatasi pengikisan daratan oleh gelombang laut tersebut, pemerintah daerah bersama warga mulai membangun pemecah gelombang dan melakukan <strong>reboisasi</strong> tanaman bakau di zona pasang surut.",
+                        pertanyaan: "Manakah pernyataan yang paling tepat mengenai penggunaan kosakata khusus (istilah) pada teks di atas?",
+                        opsi: [
+                            "Kata 'wilayah' dan 'daratan' merupakan kosakata khusus bidang geografi kelautan.",
+                            "Kata 'abrasi' dan 'reboisasi' merupakan kosakata khusus bidang lingkungan dan geografi.",
+                            "Kata 'pemerintah' dan 'warga' merupakan kosakata umum yang hanya dipakai dalam teks ilmiah.",
+                            "Kata 'gelombang' dan 'pantai' termasuk istilah teknis yang tidak dipahami masyarakat umum."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Kata 'wilayah' dan 'daratan' adalah kosakata umum yang sangat sering digunakan dalam berbagai konteks percakapan sehari-hari, bukan istilah teknis khusus." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! 'Abrasi' (pengikisan pantai oleh gelombang laut) dan 'reboisasi' (penanaman kembali hutan/vegetasi yang gundul) adalah istilah teknis khusus dalam bidang geografi dan lingkungan hidup." },
+                            { opsi: "C", benar: false, alasan: "Kosakata umum justru dipakai dalam komunikasi sehari-hari secara luas, bukan 'hanya dipakai dalam teks ilmiah'." },
+                            { opsi: "D", benar: false, alasan: "Kata 'gelombang' dan 'pantai' tergolong kosakata umum yang maknanya sudah dikenal luas oleh masyarakat awam." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Informasi Bidang Ekonomi",
+                        judulTeks: "Menjaga Daya Beli di Tengah Tekanan Inflasi",
+                        bacaan: "Bank sentral memutuskan untuk mempertahankan suku bunga acuan guna meredam laju <strong>inflasi</strong> yang dipicu oleh kenaikan harga pangan. Ketika terjadi kenaikan harga barang dan jasa secara umum dan terus-menerus, daya beli masyarakat cenderung menurun. Oleh karena itu, pelaku UMKM disarankan melakukan efisiensi biaya produksi agar margin keuntungan tetap terjaga.",
+                        pertanyaan: "Berdasarkan konteks paragraf tersebut, makna kosakata khusus 'inflasi' adalah ....",
+                        opsi: [
+                            "penurunan nilai suku bunga acuan oleh bank sentral",
+                            "peningkatan keuntungan pelaku usaha mikro, kecil, dan menengah",
+                            "kenaikan harga barang dan jasa secara umum dan terus-menerus",
+                            "penghematan biaya produksi untuk menjaga daya beli masyarakat"
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Suku bunga acuan adalah instrumen kebijakan bank sentral, bukan definisi dari inflasi." },
+                            { opsi: "B", benar: false, alasan: "Peningkatan keuntungan UMKM disebut margin laba, bertolak belakang dengan dampak tekanan inflasi." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Kalimat kedua memberikan petunjuk konteks secara eksplisit: 'Ketika terjadi kenaikan harga barang dan jasa secara umum dan terus-menerus...' yang merupakan definisi langsung dari istilah ekonomi 'inflasi'." },
+                            { opsi: "D", benar: false, alasan: "Penghematan biaya produksi disebut efisiensi, bukan inflasi." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Informasi Bidang Kesehatan",
+                        judulTeks: "Pentingnya Imunisasi dan Kekebalan Kelompok",
+                        bacaan: "Pemberian vaksin secara merata pada anak-anak bertujuan merangsang sistem imun tubuh agar membentuk <strong>antibodi</strong> spesifik terhadap virus tertentu. Apabila cakupan vaksinasi di suatu daerah mencapai target minimal, akan terbentuk kekebalan kelompok sehingga penularan penyakit menular dapat ditekan secara signifikan.",
+                        pertanyaan: "Kosakata khusus bidang kesehatan yang terdapat dalam teks bacaan tersebut adalah ....",
+                        opsi: [
+                            "anak-anak, daerah, penyakit",
+                            "sistem, target, penularan",
+                            "vaksin, imun, antibodi",
+                            "pemberian, tubuh, kelompok"
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Ketiga kata tersebut adalah kosakata umum yang dipakai di berbagai bidang kehidupan." },
+                            { opsi: "B", benar: false, alasan: "Kata 'sistem', 'target', dan 'penularan' masih bersifat umum (dipakai di bidang manajemen, olahraga, dll.)." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! 'Vaksin' (sediaan antigen), 'imun' (sistem kekebalan tubuh), dan 'antibodi' (protein pelindung yang dibentuk sistem kekebalan tubuh) adalah istilah teknis khusus bidang kedokteran/kesehatan." },
+                            { opsi: "D", benar: false, alasan: "Semua kata pada opsi D adalah kosakata umum." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 1,
+                kompetensi: "1. Pemahaman Tekstual",
+                badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                subkompetensi: "Mengidentifikasi objek atau latar berdasarkan kosakata dalam teks fiksi maupun nonfiksi.",
+                tp: {
+                    full: "Disajikan kutipan teks fiksi (cerpen/novel) maupun teks nonfiksi (deskripsi/laporan observasi), peserta didik mampu mengidentifikasi objek utama serta latar (tempat, waktu, dan suasana) secara tepat berdasarkan petunjuk kosakata dan diksi yang digunakan penulis.",
+                    a: "Peserta didik",
+                    b: "Mampu mengidentifikasi objek utama serta latar (tempat, waktu, dan suasana)",
+                    c: "Disajikan kutipan teks fiksi (cerpen/novel) maupun teks nonfiksi (deskripsi/laporan observasi)",
+                    d: "Secara tepat berdasarkan petunjuk kosakata dan diksi yang digunakan penulis"
+                },
+                trik: {
+                    langkah: [
+                        "Kumpulkan <strong>kelompok kata benda (nomina) dan kata sifat (adjektiva)</strong> yang mencolok dalam teks (misalnya: <em>peron, lokomotif, tiket</em> → menunjuk pada latar Stasiun Kereta Api).",
+                        "Untuk <strong>latar waktu</strong>, perhatikan kosakata pencahayaan, suhu, atau aktivitas khas (misalnya: <em>embun pagi, kokok ayam, fajar menyingsing</em> → pagi hari).",
+                        "Untuk <strong>latar suasana</strong>, cermati diksi emotif dan bunyi-bunyian (misalnya: <em>hening, mencekam, derap langkah tergesa</em> → suasana tegang)."
+                    ],
+                    kataKunci: "Latar tempat, latar waktu, suasana yang tergambar, objek yang dideskripsikan, bukti kosakata.",
+                    jebakan: "Menebak latar berdasarkan asumsi pribadi di luar bukti kosakata yang tertulis di dalam paragraf."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Fiksi (Kutipan Cerpen)",
+                        judulTeks: "Menunggu di Peron Tiga",
+                        bacaan: "Suara peluit panjang melengking membelah kabut tipis yang masih menggantung rendah. Di bangku besi yang dingin, Raka merapatkan jaket wolnya sambil sesekali melirik papan jadwal keberangkatan elektronik. Aroma kopi panas dari kios kecil di sudut peron berbaur dengan bau asap diesel lokomotif yang mulai dipanaskan.",
+                        pertanyaan: "Berdasarkan pilihan kosakata dalam kutipan cerpen tersebut, latar tempat dan waktu peristiwa adalah ....",
+                        opsi: [
+                            "terminal bus pada malam hari",
+                            "stasiun kereta api pada pagi hari",
+                            "bandar udara pada siang hari",
+                            "pelabuhan kapal pada sore hari"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Kosakata 'peron' dan 'lokomotif' tidak ditemukan di terminal bus." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Kosakata 'peluit', 'papan jadwal keberangkatan', 'peron', dan 'lokomotif' merujuk kuat pada stasiun kereta api. Sementara kosakata 'kabut tipis menggantung rendah', 'bangku besi yang dingin', dan 'merapatkan jaket' menunjukkan suasana dingin di pagi hari." },
+                            { opsi: "C", benar: false, alasan: "Bandar udara menggunakan istilah seperti 'ruang tunggu/gate', 'landasan pacu', dan 'pesawat', bukan lokomotif." },
+                            { opsi: "D", benar: false, alasan: "Pelabuhan menggunakan istilah 'dermaga' dan 'kapal', bukan peron dan lokomotif." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Nonfiksi (Teks Deskripsi)",
+                        judulTeks: "Keajaiban Ekosistem Bawah Laut Raja Ampat",
+                        bacaan: "Di kedalaman sepuluh meter di bawah permukaan laut yang jernih, hamparan terumbu karang keras dan lunak tumbuh subur membentuk taman warna-warni. Ratusan ikan badut bersembunyi di sela-sela tentakel anemon yang melambai mengikuti arus, sementara penyu sisik melintas tenang di atas padang lamun.",
+                        pertanyaan: "Objek utama yang dideskripsikan berdasarkan kosakata dalam teks nonfiksi tersebut adalah ....",
+                        opsi: [
+                            "aktivitas nelayan tradisional di pesisir Papua",
+                            "biota dan ekosistem terumbu karang bawah laut",
+                            "proses pencemaran limbah di perairan dangkal",
+                            "budidaya ikan hias air tawar di dalam akuarium"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Tidak ada satu pun kosakata yang menyebutkan nelayan, perahu, atau jaring." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Rangkaian kosakata 'kedalaman sepuluh meter di bawah permukaan laut', 'terumbu karang', 'ikan badut', 'anemon', 'penyu sisik', dan 'padang lamun' secara spesifik menggambarkan ekosistem dan biota bawah laut." },
+                            { opsi: "C", benar: false, alasan: "Teks menggambarkan kondisi laut yang jernih dan subur, bukan pencemaran limbah." },
+                            { opsi: "D", benar: false, alasan: "Penyu sisik, terumbu karang, dan padang lamun adalah ekosistem laut alami, bukan akuarium air tawar." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Kutipan Novel)",
+                        judulTeks: "Detik-Detik Pengumuman",
+                        bacaan: "Ruang aula itu mendadak senyap hingga detak jarum jam dinding terdengar begitu nyaring. Puluhan pasang mata tertuju pada amplop cokelat tersegel di tangan ketua dewan juri. Dinda mengepalkan kedua tangannya yang mulai berkeringat dingin, menahan napas menanti satu nama yang akan segera dibacakan.",
+                        pertanyaan: "Latar suasana yang tergambar melalui diksi dalam kutipan novel di atas adalah ....",
+                        opsi: [
+                            "riuh dan penuh sukacita",
+                            "haru dan menyedihkan",
+                            "tegang dan penuh kecemasan",
+                            "santai dan membosankan"
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Kata 'mendadak senyap' bertentangan dengan suasana riuh." },
+                            { opsi: "B", benar: false, alasan: "Tidak ada kosakata yang menunjukkan tangisan atau kesedihan." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Diksi 'mendadak senyap', 'detak jarum jam terdengar nyaring', 'mengepalkan tangan', 'berkeringat dingin', dan 'menahan napas' secara jelas membangun suasana tegang dan cemas." },
+                            { opsi: "D", benar: false, alasan: "Berkeringat dingin dan menahan napas menunjukkan ketegangan tinggi, bukan santai." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                kompetensi: "1. Pemahaman Tekstual",
+                badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                subkompetensi: "Mengidentifikasi informasi penting yang tertulis secara tersurat dalam teks.",
+                tp: {
+                    full: "Setelah membaca teks fiksi maupun nonfiksi secara saksama, peserta didik mampu menemukan dan mengidentifikasi informasi penting yang tertulis secara tersurat (eksplisit) menggunakan panduan unsur ADIKSIMBA (Apa, Di mana, Kapan, Siapa, Mengapa, Bagaimana) dengan cermat tanpa menambah atau mengurangi fakta teks.",
+                    a: "Peserta didik",
+                    b: "Mampu menemukan dan mengidentifikasi informasi penting yang tertulis secara tersurat (eksplisit)",
+                    c: "Setelah membaca teks fiksi maupun nonfiksi dengan panduan unsur ADIKSIMBA",
+                    d: "Dengan cermat tanpa menambah atau mengurangi fakta teks"
+                },
+                trik: {
+                    langkah: [
+                        "<strong>Baca pertanyaan terlebih dahulu</strong> sebelum membaca teks secara keseluruhan agar otak langsung fokus mencari target informasi.",
+                        "Gunakan teknik <strong>scanning (memindai)</strong> kata kunci dari pertanyaan (misalnya nama tokoh, angka tahun, lokasi, atau alasan) di dalam bacaan.",
+                        "Bandingkan setiap opsi jawaban secara teliti dengan kalimat di dalam teks (cocokkan subjek, predikat, dan angkanya)."
+                    ],
+                    kataKunci: "Pernyataan yang sesuai dengan isi teks, menurut bacaan tersebut, mengapa/bagaimana/kapan (fakta langsung).",
+                    jebakan: "Opsi pengecoh sering mengubah sedikit detail fakta teks (misalnya mengubah kata 'sebagian' menjadi 'seluruh', atau menukar angka/tahun/nama tempat)."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Nonfiksi (Sejarah & Budaya)",
+                        judulTeks: "Subak: Sistem Irigasi Warisan Dunia dari Bali",
+                        bacaan: "Subak merupakan organisasi kemasyarakatan yang khusus mengatur sistem pengairan sawah tradisional di Bali. Sistem ini telah ada sejak abad ke-11 dan berlandaskan filosofi Tri Hita Karana, yaitu keseimbangan hubungan antara manusia dengan Tuhan, sesama manusia, dan alam. Pada tahun 2012, UNESCO resmi menetapkan lanskap budaya Provinsi Bali yang mencakup sistem Subak sebagai Situs Warisan Dunia.",
+                        pertanyaan: "Berdasarkan teks tersebut, kapan UNESCO menetapkan sistem Subak sebagai Situs Warisan Dunia?",
+                        opsi: [
+                            "Pada abad ke-11",
+                            "Pada tahun 2012",
+                            "Sejak berdirinya Tri Hita Karana",
+                            "Pada tahun 2021"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Abad ke-11 adalah waktu awal keberadaan sistem Subak di Bali, bukan tahun penetapan oleh UNESCO." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Kalimat terakhir secara tersurat menyebutkan: 'Pada tahun 2012, UNESCO resmi menetapkan lanskap budaya Provinsi Bali yang mencakup sistem Subak sebagai Situs Warisan Dunia.'" },
+                            { opsi: "C", benar: false, alasan: "Tri Hita Karana adalah filosofi landasan Subak, bukan keterangan waktu." },
+                            { opsi: "D", benar: false, alasan: "Angka 2021 adalah jebakan pembalikan angka dari 2012." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Nonfiksi (Sains & Teknologi)",
+                        judulTeks: "Cara Kerja Panel Surya Mengubah Energi",
+                        bacaan: "Panel surya bekerja dengan menangkap energi cahaya matahari menggunakan sel fotovoltaik yang umumnya terbuat dari bahan silikon. Ketika foton cahaya matahari menabrak sel silikon, elektron di dalamnya terlepas dan menghasilkan aliran listrik searah (DC). Selanjutnya, komponen bernama inverter mengubah arus listrik searah tersebut menjadi arus bolak-balik (AC) agar dapat digunakan untuk menyalakan peralatan rumah tangga.",
+                        pertanyaan: "Menurut bacaan di atas, apa fungsi utama komponen inverter pada sistem panel surya?",
+                        opsi: [
+                            "Menangkap foton cahaya matahari secara langsung.",
+                            "Melepaskan elektron dari bahan silikon murni.",
+                            "Mengubah arus listrik searah (DC) menjadi arus bolak-balik (AC).",
+                            "Menyimpan cadangan energi listrik saat cuaca mendung."
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Fungsi menangkap cahaya matahari dilakukan oleh sel fotovoltaik." },
+                            { opsi: "B", benar: false, alasan: "Elektron terlepas karena foton cahaya menabrak sel silikon, bukan tugas inverter." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Tertulis secara eksplisit pada kalimat terakhir: '...komponen bernama inverter mengubah arus listrik searah tersebut menjadi arus bolak-balik (AC)...'" },
+                            { opsi: "D", benar: false, alasan: "Fungsi menyimpan cadangan listrik adalah tugas baterai, yang tidak dibahas dalam paragraf ini." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Cerita Rakyat/Fabel)",
+                        judulTeks: "Musyawarah di Tepi Sungai",
+                        bacaan: "Musim kemarau panjang membuat debit air Sungai Jernih menyusut drastis. Kancil mengusulkan agar seluruh penghuni hutan menggali sumur cadangan di dekat akar pohon beringin tua karena tanah di sana masih lembap. Namun, Kerbau menolak usulan itu dan lebih memilih bermigrasi ke lembah seberang bukit yang memakan waktu perjalanan tiga hari.",
+                        pertanyaan: "Pernyataan yang sesuai dengan isi cerita di atas adalah ....",
+                        opsi: [
+                            "Seluruh penghuni hutan langsung setuju dengan usulan Kancil.",
+                            "Kancil menyarankan penggalian sumur di dekat pohon beringin tua.",
+                            "Kerbau mengajak warga hutan menggali sumur di lembah seberang bukit.",
+                            "Perjalanan menuju pohon beringin tua memakan waktu tiga hari."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Tidak sesuai teks karena Kerbau menolak usulan Kancil." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Kalimat kedua menyatakan secara tersurat: 'Kancil mengusulkan agar seluruh penghuni hutan menggali sumur cadangan di dekat akar pohon beringin tua...'" },
+                            { opsi: "C", benar: false, alasan: "Kerbau memilih bermigrasi ke lembah seberang bukit, bukan menggali sumur di sana." },
+                            { opsi: "D", benar: false, alasan: "Waktu perjalanan tiga hari adalah jarak menuju lembah seberang bukit, bukan ke pohon beringin tua." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 3,
+                kompetensi: "1. Pemahaman Tekstual",
+                badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                subkompetensi: "Menyusun kembali informasi penting dari teks ke dalam bentuk ikhtisar atau bagan.",
+                tp: {
+                    full: "Melalui analisis struktur dan informasi penting dari teks eksposisi atau teks prosedur yang kompleks, peserta didik mampu menyusun kembali (rekonstruksi) gagasan-gagasan utama teks ke dalam bentuk ikhtisar (ringkasan) atau bagan alur/klasifikasi yang sistematis dan proporsional.",
+                    a: "Peserta didik",
+                    b: "Mampu menyusun kembali (rekonstruksi) gagasan-gagasan utama teks ke dalam bentuk ikhtisar atau bagan",
+                    c: "Melalui analisis struktur dan informasi penting dari teks eksposisi atau teks prosedur yang kompleks",
+                    d: "Secara sistematis, logis, dan proporsional sesuai isi teks"
+                },
+                trik: {
+                    langkah: [
+                        "Identifikasi <strong>pola pengembangan teks</strong> terlebih dahulu: apakah berpola <em>klasifikasi/pengelompokan</em> (jenis A, jenis B), <em>kronologis/tahapan</em> (langkah 1 → 2 → 3), atau <em>sebab-akibat</em>.",
+                        "Ambil hanya <strong>ide pokok dari setiap paragraf</strong>, lalu buang contoh-contoh yang terlalu rinci atau kalimat penjelas yang berulang.",
+                        "Pastikan urutan dalam ikhtisar atau kotak bagan <strong>mengikuti urutan alur informasi</strong> yang disajikan penulis."
+                    ],
+                    kataKunci: "Ikhtisar yang tepat, ringkasan bacaan, isian bagan yang rumpang, peta konsep teks.",
+                    jebakan: "Ikhtisar hanya mencakup paragraf pertama saja (tidak mewakili keseluruhan teks) atau memasukkan opini baru yang tidak ada di bacaan."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Eksposisi Klasifikasi",
+                        judulTeks: "Pengelolaan Sampah Berbasis Jenisnya",
+                        bacaan: "Pengelolaan sampah rumah tangga yang efektif dimulai dari pemilahan berdasarkan sifat bahannya. Pertama, sampah organik seperti sisa makanan dan daun kering dapat diolah menjadi pupuk kompos. Kedua, sampah anorganik seperti botol plastik, kaleng, dan kaca dapat dikirim ke bank sampah untuk didaur ulang. Ketiga, sampah Bahan Berbahaya dan Beracun (B3) seperti baterai bekas dan lampu neon harus diserahkan ke fasilitas pengolahan khusus agar tidak mencemari tanah.",
+                        pertanyaan: "Jika informasi teks di atas disusun ke dalam bagan klasifikasi: [Sampah Rumah Tangga] → (1) Organik: Pupuk Kompos | (2) Anorganik: [ ... X ... ] | (3) Sampah B3: Pengolahan Khusus. Isian yang tepat untuk melengkapi bagian [X] adalah ....",
+                        opsi: [
+                            "Dibuang ke tempat pembuangan akhir",
+                            "Dikirim ke bank sampah untuk didaur ulang",
+                            "Ditimbun di dalam tanah pekarangan",
+                            "Dibakar agar tidak mencemari lingkungan"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Tidak tercantum dalam teks bacaan." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Pada kalimat ketiga disebutkan bahwa sampah anorganik 'dapat dikirim ke bank sampah untuk didaur ulang', sejajar dengan kolom cara pengolahan pada jenis sampah lainnya." },
+                            { opsi: "C", benar: false, alasan: "Menimbun di tanah justru bertentangan dengan upaya pelestarian tanah." },
+                            { opsi: "D", benar: false, alasan: "Tidak ada informasi tentang pembakaran sampah dalam bacaan." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Proses (Siklus Air)",
+                        judulTeks: "Tahapan Terjadinya Hujan",
+                        bacaan: "Siklus hidrologi dimulai ketika panas matahari menyebabkan air laut dan sungai menguap ke atmosfer dalam proses yang disebut evaporasi. Uap air yang naik ke lapisan udara dingin kemudian mengalami kondensasi hingga membentuk titik-titik air yang berkumpul menjadi awan. Ketika awan sudah terlalu berat dan jenuh menampung uap air, titik-titik air tersebut jatuh ke permukaan bumi sebagai hujan atau presipitasi.",
+                        pertanyaan: "Bagan alur yang paling tepat untuk menyusun kembali informasi penting dari teks tersebut adalah ....",
+                        opsi: [
+                            "Kondensasi (Awan) → Evaporasi (Penguapan) → Presipitasi (Hujan)",
+                            "Evaporasi (Penguapan) → Kondensasi (Pembentukan Awan) → Presipitasi (Hujan)",
+                            "Presipitasi (Hujan) → Kondensasi (Awan) → Evaporasi (Penguapan)",
+                            "Evaporasi (Pembentukan Awan) → Presipitasi (Penguapan) → Kondensasi (Hujan)"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Urutan tahap pertama dan kedua terbalik." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Alur kronologis pada teks dimulai dari evaporasi (penguapan air laut/sungai), dilanjutkan kondensasi (uap air membentuk awan), dan diakhiri presipitasi (jatuhnya hujan)." },
+                            { opsi: "C", benar: false, alasan: "Urutan siklus pada teks dimulai dari penguapan, bukan dari hujan." },
+                            { opsi: "D", benar: false, alasan: "Pasangan istilah dan pengertiannya tertukar." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Multi-Paragraf",
+                        judulTeks: "Manfaat Literasi Digital bagi Pelajar",
+                        bacaan: "Paragraf 1: Kemampuan literasi digital sangat dibutuhkan pelajar di era keterbukaan informasi saat ini. Dengan literasi digital yang baik, siswa mampu menyaring kebenaran berita sehingga terhindar dari jebakan hoaks di media sosial.\nParagraf 2: Selain itu, literasi digital mendorong pelajar memanfaatkan teknologi secara produktif. Siswa dapat mengakses ribuan sumber belajar daring secara gratis untuk meningkatkan prestasi akademik maupun keterampilan kreatif.",
+                        pertanyaan: "Ikhtisar yang paling tepat dan menyeluruh berdasarkan kedua paragraf tersebut adalah ....",
+                        opsi: [
+                            "Pelajar harus menghindari penggunaan media sosial karena banyak mengandung berita hoaks yang merugikan.",
+                            "Ribuan sumber belajar daring tersedia secara gratis di internet untuk menggantikan peran buku cetak di sekolah.",
+                            "Literasi digital penting bagi pelajar untuk menyaring informasi agar terhindar dari hoaks sekaligus memanfaatkan teknologi secara produktif untuk belajar.",
+                            "Keterbukaan informasi membuat siswa kesulitan membedakan antara sumber belajar gratis dan media sosial."
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Hanya merangkum sebagian isi paragraf 1 dan menyimpulkan secara berlebihan (melarang media sosial)." },
+                            { opsi: "B", benar: false, alasan: "Hanya membahas paragraf 2 dan menambahkan informasi yang tidak ada di teks (menggantikan buku cetak)." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Ikhtisar ini menggabungkan gagasan utama Paragraf 1 (menyaring informasi/antihoaks) dan Paragraf 2 (pemanfaatan teknologi secara produktif untuk belajar) secara proporsional." },
+                            { opsi: "D", benar: false, alasan: "Tidak sesuai dengan gagasan utama teks." }
+                        ]
+                    }
+                ]
+            },
+
+            // =========================================================================
+            // KOMPETENSI 2: PEMAHAMAN INFERENSIAL (Subkompetensi 5 - 7)
+            // =========================================================================
+            {
+                id: 4,
+                kompetensi: "2. Pemahaman Inferensial",
+                badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                subkompetensi: "Menyimpulkan ide pokok, gagasan pendukung, tokoh, peristiwa, latar, amanat, dan nilai-nilai dalam teks.",
+                tp: {
+                    full: "Berdasarkan analisis mendalam terhadap unsur intrinsik teks sastra dan struktur gagasan teks informasi, peserta didik mampu menyimpulkan ide pokok, gagasan pendukung, penokohan, amanat, serta nilai-nilai kehidupan yang tersirat di dalam bacaan secara logis dan berbasis bukti tekstual.",
+                    a: "Peserta didik",
+                    b: "Mampu menyimpulkan ide pokok, gagasan pendukung, penokohan, amanat, serta nilai-nilai kehidupan",
+                    c: "Berdasarkan analisis mendalam terhadap unsur intrinsik teks sastra dan struktur gagasan teks informasi",
+                    d: "Secara logis dan berbasis bukti tekstual"
+                },
+                trik: {
+                    langkah: [
+                        "Untuk <strong>Ide Pokok</strong>: Temukan kalimat utama (di awal/deduktif, akhir/induktif, atau campuran), lalu sarikan intinya menjadi pernyataan yang mencakup seluruh kalimat penjelas.",
+                        "Untuk <strong>Amanat & Nilai</strong> (moral, sosial, budaya): Amati konflik yang dialami tokoh dan bagaimana cara tokoh menyelesaikannya; pesan positif di balik akibat perbuatan tokoh itulah amanatnya.",
+                        "Pastikan simpulan bersifat <strong>menyeluruh (general)</strong>, bukan sekadar mengutip satu detail kecil dari teks."
+                    ],
+                    kataKunci: "Ide pokok paragraf, gagasan utama, amanat cerita, watak tokoh, nilai moral/sosial yang terkandung.",
+                    jebakan: "Memilih kalimat penjelas (contoh/detail) sebagai ide pokok, atau memilih amanat yang bernada menggurui tetapi tidak berkaitan dengan konflik cerita."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Eksposisi",
+                        judulTeks: "Peran Hutan Kota bagi Ekosistem Perkotaan",
+                        bacaan: "Keberadaan hutan kota memiliki fungsi ekologis yang sangat vital bagi wilayah perkotaan yang padat. Pepohonan rimbun di hutan kota mampu menyerap emisi karbon dioksida dari kendaraan bermotor sekaligus menghasilkan oksigen segar. Selain itu, area resapan tanah di kawasan ini membantu mencegah banjir saat curah hujan tinggi dan menurunkan suhu udara mikro hingga dua derajat Celsius.",
+                        pertanyaan: "Ide pokok paragraf tersebut adalah ....",
+                        opsi: [
+                            "Kemampuan pepohonan menyerap emisi karbon dioksida kendaraan bermotor.",
+                            "Penurunan suhu udara mikro di perkotaan hingga dua derajat Celsius.",
+                            "Fungsi ekologis hutan kota yang sangat vital bagi wilayah perkotaan.",
+                            "Pencegahan banjir saat curah hujan tinggi melalui area resapan tanah."
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Ini merupakan gagasan pendukung pertama (penjelas dari fungsi ekologis)." },
+                            { opsi: "B", benar: false, alasan: "Ini merupakan gagasan pendukung ketiga yang menjelaskan rincian manfaat." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Kalimat pertama adalah kalimat utama (paragraf deduktif) yang bersifat umum dan memayungi seluruh kalimat penjelas berikutnya mengenai manfaat ekologis hutan kota." },
+                            { opsi: "D", benar: false, alasan: "Ini merupakan gagasan pendukung kedua." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Cerpen)",
+                        judulTeks: "Dompet Kulit di Bangku Taman",
+                        bacaan: "Bima menemukan sebuah dompet kulit tebal tergeletak di bawah bangku taman sekolah. Di dalamnya terdapat sejumlah uang tunai dan kartu identitas milik Pak Hendra, penjaga kantin sekolah. Meski saat itu Bima sedang membutuhkan uang untuk membayar iuran buku, ia segera berlari menuju kantin dan menyerahkan dompet tersebut secara utuh kepada pemiliknya.",
+                        pertanyaan: "Amanat dan nilai moral yang dapat disimpulkan dari kutipan cerita tersebut adalah ....",
+                        opsi: [
+                            "Kita harus berhati-hati menyimpan barang berharga agar tidak jatuh di tempat umum.",
+                            "Kejujuran harus tetap dijunjung tinggi meskipun kita sedang berada dalam kesulitan.",
+                            "Bekerja sebagai penjaga kantin membutuhkan ketelitian dalam mengelola uang.",
+                            "Membantu teman yang kesulitan membayar iuran sekolah adalah perbuatan mulia."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Pesan ini hanya berfokus pada kecerobohan pemilik dompet, bukan inti konflik moral tokoh utama (Bima)." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Konflik batin Bima adalah ia sedang membutuhkan uang, namun ia tetap memilih mengembalikan dompet secara utuh. Ini mengajarkan nilai kejujuran di atas kepentingan pribadi." },
+                            { opsi: "C", benar: false, alasan: "Tidak relevan dengan inti peristiwa dalam cerita." },
+                            { opsi: "D", benar: false, alasan: "Tidak ada peristiwa membantu teman membayar iuran di dalam cerita." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Biografi Singkat",
+                        judulTeks: "Ketekunan Sang Penemu",
+                        bacaan: "Meskipun puluhan kali mengalami kegagalan saat menguji campuran bahan baterai ramah lingkungan di laboratorium kecilnya, Ardi tidak pernah menyerah. Setiap kali percobaannya gagal, ia mencatat penyebab kesalahan secara rinci, membaca jurnal ilmiah terbaru, lalu memodifikasi formulanya hingga akhirnya berhasil menciptakan prototipe baterai yang tahan lama.",
+                        pertanyaan: "Simpulan watak tokoh Ardi berdasarkan tindakan yang digambarkan dalam teks adalah ....",
+                        opsi: [
+                            "ceroboh dan tergesa-gesa",
+                            "gigih, teliti, dan pantang menyerah",
+                            "sombong dan sulit menerima masukan",
+                            "pesimistis saat menghadapi kegagalan"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Justru Ardi mencatat penyebab kesalahan secara rinci, yang menunjukkan ketelitian." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Frasa 'tidak pernah menyerah', 'mencatat penyebab kesalahan secara rinci', dan 'memodifikasi formulanya hingga berhasil' membuktikan watak gigih, teliti, dan pantang menyerah." },
+                            { opsi: "C", benar: false, alasan: "Tidak ada bukti perilaku sombong dalam teks." },
+                            { opsi: "D", benar: false, alasan: "Bertentangan dengan tindakan Ardi yang terus mencoba hingga berhasil." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 5,
+                kompetensi: "2. Pemahaman Inferensial",
+                badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                subkompetensi: "Menjelaskan hubungan makna atau kelogisan antarkalimat dan antarparagraf (seperti hubungan sebab-akibat).",
+                tp: {
+                    full: "Melalui penelaahan konjungsi intrakalimat, antarkalimat, serta koherensi gagasan dalam teks bacaan, peserta didik mampu menjelaskan hubungan makna dan kelogisan antarkalimat maupun antarparagraf (hubungan sebab-akibat, perbandingan, pertentangan, dan tujuan) secara tepat.",
+                    a: "Peserta didik",
+                    b: "Mampu menjelaskan hubungan makna dan kelogisan antarkalimat maupun antarparagraf",
+                    c: "Melalui penelaahan konjungsi serta koherensi gagasan dalam teks bacaan",
+                    d: "Secara tepat dan logis"
+                },
+                trik: {
+                    langkah: [
+                        "Lingkari <strong>kata penghubung (konjungsi)</strong> yang menjembatani antarkalimat atau awal paragraf kedua (contoh: <em>oleh karena itu, akibatnya, namun, sebaliknya, selain itu, dengan demikian</em>).",
+                        "Jika konjungsi tidak ditulis secara eksplisit (implisit), uji hubungan logisnya dengan menyisipkan kata <strong>'karena'</strong> atau <strong>'sehingga'</strong> di antara kedua kalimat/paragraf tersebut.",
+                        "Periksa hubungan antara Paragraf 1 dan Paragraf 2: apakah Paragraf 2 menjadi <em>solusi</em> atas masalah di Paragraf 1, atau menjadi <em>dampak/akibat</em> dari peristiwa di Paragraf 1?"
+                    ],
+                    kataKunci: "Hubungan antarparagraf, hubungan makna kalimat (1) dan (2), konjungsi yang tepat, kelogisan pernyataan.",
+                    jebakan: "Tertukar antara 'sebab' dan 'akibat' (peristiwa A menyebabkan B, tetapi opsi menyebut B menyebabkan A)."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Eksplanasi",
+                        judulTeks: "Fenomena Pulau Bahang Perkotaan",
+                        bacaan: "(1) Lahan terbuka hijau di kota-kota besar terus menyusut dan berganti menjadi gedung bertingkat serta jalan beraspal. (2) Permukaan beton dan aspal tersebut menyerap panas matahari pada siang hari dan melepaskannya secara perlahan pada malam hari. (3) Akibatnya, suhu udara di pusat kota terasa jauh lebih panas dibandingkan wilayah pinggiran yang masih rimbun.",
+                        pertanyaan: "Hubungan makna antara kalimat (1)-(2) dengan kalimat (3) pada paragraf tersebut adalah hubungan ....",
+                        opsi: [
+                            "pertentangan",
+                            "perbandingan",
+                            "sebab-akibat",
+                            "tujuan"
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Hubungan pertentangan biasanya ditandai konjungsi 'namun' atau 'sebaliknya'." },
+                            { opsi: "B", benar: false, alasan: "Meskipun ada perbandingan suhu kota dan pinggiran di kalimat (3), hubungan utama antara kalimat (1)-(2) ke (3) adalah kausalitas." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Berkurangnya lahan hijau dan sifat beton/aspal yang menyerap panas (kalimat 1 & 2) merupakan SEBAB, sedangkan meningkatnya suhu udara pusat kota (kalimat 3) merupakan AKIBAT (dipertegas konjungsi 'Akibatnya')." },
+                            { opsi: "D", benar: false, alasan: "Hubungan tujuan ditandai konjungsi 'agar' atau 'supaya'." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Dua Paragraf (Masalah & Solusi)",
+                        judulTeks: "Krisis Air Bersih dan Pemanenan Air Hujan",
+                        bacaan: "Paragraf 1: Eksploitasi air tanah secara berlebihan oleh kawasan industri dan permukiman padat menyebabkan permukaan tanah di beberapa kota pesisir mengalami penurunan setiap tahun. Selain itu, intrusi air laut mulai mencemari sumur-sumur warga sehingga air tidak lagi layak konsumsi.\nParagraf 2: Untuk mengatasi persoalan tersebut, para ahli tata kota mendorong penerapan teknologi pemanenan air hujan (rainwater harvesting) di setiap bangunan. Air hujan yang ditampung dan disaring dapat memenuhi kebutuhan air bersih harian sekaligus mengurangi ketergantungan pada air tanah.",
+                        pertanyaan: "Keterkaitan isi yang paling logis antara Paragraf 1 dan Paragraf 2 adalah ....",
+                        opsi: [
+                            "Paragraf 2 memaparkan penyebab terjadinya masalah yang dijelaskan pada Paragraf 1.",
+                            "Paragraf 2 menyajikan solusi untuk mengatasi dampak masalah yang diuraikan pada Paragraf 1.",
+                            "Paragraf 2 membantah kebenaran data penurunan permukaan tanah pada Paragraf 1.",
+                            "Paragraf 2 memberikan contoh lain dari kerusakan lingkungan akibat intrusi air laut."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Penyebab masalah (eksploitasi air tanah) sudah dijelaskan di Paragraf 1." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Paragraf 1 menguraikan masalah krisis air tanah dan intrusi air laut, sedangkan Paragraf 2 (diawali frasa 'Untuk mengatasi persoalan tersebut...') memaparkan solusi berupa pemanenan air hujan." },
+                            { opsi: "C", benar: false, alasan: "Paragraf 2 justru mendukung dan menindaklanjuti masalah di Paragraf 1, bukan membantahnya." },
+                            { opsi: "D", benar: false, alasan: "Paragraf 2 berisi solusi teknologi, bukan contoh kerusakan." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Argumentasi",
+                        judulTeks: "Transportasi Publik vs Kendaraan Pribadi",
+                        bacaan: "Pemerintah kota telah menambah armada bus listrik yang nyaman dengan tarif sangat terjangkau. [ ... ], tingkat kemacetan pada jam sibuk masih tinggi karena sebagian besar pekerja enggan berpindah dari kendaraan pribadi menuju transportasi umum.",
+                        pertanyaan: "Konjungsi antarkalimat yang paling tepat dan logis untuk melengkapi bagian rumpang tersebut adalah ....",
+                        opsi: [
+                            "Oleh karena itu",
+                            "Dengan demikian",
+                            "Namun demikian",
+                            "Selanjutnya"
+                        ],
+                        kunci: 2,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "'Oleh karena itu' menyatakan akibat logis, padahal kalimat kedua bertentangan dengan harapan pada kalimat pertama." },
+                            { opsi: "B", benar: false, alasan: "'Dengan demikian' berfungsi menyimpulkan." },
+                            { opsi: "C", benar: true, alasan: "TEPAT! Kalimat pertama berisi upaya positif (penambahan bus listrik nyaman dan murah), tetapi kalimat kedua berisi kenyataan yang bertolak belakang (kemacetan tetap tinggi). Maka konjungsi pertentangan 'Namun demikian' paling logis digunakan." },
+                            { opsi: "D", benar: false, alasan: "'Selanjutnya' menyatakan urutan waktu/tahapan." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 6,
+                kompetensi: "2. Pemahaman Inferensial",
+                badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                subkompetensi: "Memprediksi lanjutan peristiwa atau perubahan sederhana pada objek/karakter berdasarkan isi teks.",
+                tp: {
+                    full: "Berdasarkan petunjuk kausalitas, pola perilaku karakter, dan fakta ilmiah dalam teks bacaan, peserta didik mampu memprediksi kelanjutan peristiwa atau perubahan yang akan terjadi pada objek maupun karakter secara masuk akal dan berdasar pada bukti teks.",
+                    a: "Peserta didik",
+                    b: "Mampu memprediksi kelanjutan peristiwa atau perubahan yang akan terjadi pada objek maupun karakter",
+                    c: "Berdasarkan petunjuk kausalitas, pola perilaku karakter, dan fakta ilmiah dalam teks bacaan",
+                    d: "Secara masuk akal dan berdasar pada bukti teks"
+                },
+                trik: {
+                    langkah: [
+                        "Temukan <strong>kondisi awal atau tren perubahan</strong> yang sedang berlangsung pada teks (misalnya: suhu naik, baterai melemah, tokoh mulai menyadari kesalahannya).",
+                        "Hubungkan tren tersebut dengan <strong>hukum sebab-akibat logis</strong> atau petunjuk peristiwa di akhir paragraf.",
+                        "Pilih prediksi yang paling <strong>realistis dan langsung berkaitan</strong> dengan akhir teks, hindari prediksi yang terlalu jauh melompat atau berkhayal di luar konteks."
+                    ],
+                    kataKunci: "Kemungkinan peristiwa yang akan terjadi selanjutnya, prediksi perubahan pada objek, dampak jangka pendek jika kondisi berlanjut.",
+                    jebakan: "Prediksi yang melompat terlalu jauh (misalnya dari siswa lupa membawa payung langsung diprediksi menjadi pindah sekolah)."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Fiksi (Cerpen)",
+                        judulTeks: "Janji di Lapangan Desa",
+                        bacaan: "Langit di sebelah barat mulai menghitam pekat disertai kilatan petir dan gemuruh guntur yang kian mendekat. Angin kencang menerbangkan dedaunan kering di lapangan desa tempat Dani dan teman-temannya hendak berlatih sepak bola. Sementara itu, Dani teringat bahwa ia belum mengangkat jemuran pakaian ibunya di halaman rumah yang tidak beratap.",
+                        pertanyaan: "Berdasarkan isi teks tersebut, peristiwa apa yang paling mungkin dilakukan Dani selanjutnya?",
+                        opsi: [
+                            "Tetap melanjutkan latihan sepak bola hingga hujan reda.",
+                            "Segera pulang ke rumah untuk mengangkat jemuran sebelum hujan turun.",
+                            "Berteduh di warung pinggir lapangan sambil menunggu petir berhenti.",
+                            "Mengajak teman-temannya bermain layang-layang di tengah angin kencang."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Tanda-tanda hujan deras sudah sangat dekat dan Dani memiliki tanggung jawab di rumah." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Petunjuk langit menghitam/guntur (tanda akan segera hujan) dikombinasikan dengan ingatan Dani tentang jemuran di halaman tak beratap secara logis mengarah pada tindakan segera pulang menyelamatkan jemuran." },
+                            { opsi: "C", benar: false, alasan: "Jika berteduh di warung, jemuran ibunya tetap akan kehujanan." },
+                            { opsi: "D", benar: false, alasan: "Bermain layang-layang saat ada petir sangat berbahaya dan bertentangan dengan konteks." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Nonfiksi (Sains Biologi)",
+                        judulTeks: "Eksperimen Pertumbuhan Kecambah",
+                        bacaan: "Nadia melakukan percobaan menanam dua pot kecambah kacang hijau dengan jenis tanah dan volume penyiraman air yang sama. Pot A diletakkan di teras rumah yang terkena sinar matahari pagi secara cukup, sedangkan Pot B diletakkan di dalam lemari tertutup yang gelap gulita. Setelah tujuh hari, Nadia mengamati perubahan fisik pada kedua tanaman tersebut.",
+                        pertanyaan: "Prediksi perubahan fisik yang paling akurat terjadi pada tanaman di Pot B dibandingkan Pot A adalah ....",
+                        opsi: [
+                            "Batang tumbuh pendek, kokoh, dan daunnya berwarna hijau tua segar.",
+                            "Batang tumbuh memanjang secara cepat tetapi lemah, pucat, dan daun menguning.",
+                            "Akar tanaman membusuk karena kekurangan suplai air bersih setiap hari.",
+                            "Tanaman langsung berbunga dan menghasilkan biji kacang hijau lebih cepat."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Ciri-ciri ini adalah kondisi tanaman sehat yang mendapat cahaya matahari cukup (Pot A)." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Dalam sains biologi, tanaman yang tumbuh di tempat gelap mengalami peristiwa etiolasi: batang tumbuh sangat panjang mencari cahaya, namun kurus/lemah dan daun pucat/kekuningan karena kekurangan klorofil." },
+                            { opsi: "C", benar: false, alasan: "Teks menyebutkan volume penyiraman air pada kedua pot adalah sama." },
+                            { opsi: "D", benar: false, alasan: "Tanpa fotosintesis akibat ketiadaan cahaya, tanaman tidak mungkin berbuah lebih cepat." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Nonfiksi (Ekonomi Pangan)",
+                        judulTeks: "Gagal Panen Akibat Serangan Wereng",
+                        bacaan: "Curah hujan yang tidak menentu dalam dua bulan terakhir memicu ledakan populasi hama wereng cokelat di sentra penghasil beras utama. Akibatnya, ribuan hektare sawah mengalami puso (gagal panen) menjelang musim panen raya, sementara permintaan konsumsi beras masyarakat tetap tinggi.",
+                        pertanyaan: "Berdasarkan prinsip ekonomi dan isi bacaan, dampak lanjutan yang paling mungkin terjadi di pasar adalah ....",
+                        opsi: [
+                            "Harga beras di pasaran mengalami kenaikan karena pasokan berkurang.",
+                            "Petani akan mengekspor beras dalam jumlah besar ke luar negeri.",
+                            "Harga beras turun drastis karena masyarakat beralih mengonsumsi sayuran.",
+                            "Stok beras di gudang penyimpanan melimpah melebihi kebutuhan."
+                        ],
+                        kunci: 0,
+                        pembahasan: [
+                            { opsi: "A", benar: true, alasan: "TEPAT! Ketika pasokan (supply) beras berkurang drastis akibat gagal panen sementara permintaan (demand) tetap tinggi, secara logis harga beras di pasar akan naik." },
+                            { opsi: "B", benar: false, alasan: "Tidak mungkin mengekspor jika produksi dalam negeri saja gagal panen." },
+                            { opsi: "C", benar: false, alasan: "Teks tidak menyebutkan perubahan pola konsumsi masyarakat ke sayuran." },
+                            { opsi: "D", benar: false, alasan: "Gagal panen menyebabkan stok menyusut, bukan melimpah." }
+                        ]
+                    }
+                ]
+            },
+
+            // =========================================================================
+            // KOMPETENSI 3: EVALUASI DAN APPRECIASI (Subkompetensi 8 - 10)
+            // =========================================================================
+            {
+                id: 7,
+                kompetensi: "3. Evaluasi dan Apresiasi",
+                badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+                subkompetensi: "Menilai kesesuaian, keakuratan, atau kecukupan informasi dalam bacaan.",
+                tp: {
+                    full: "Dengan bersikap kritis terhadap berbagai jenis teks informasi, peserta didik mampu mengevaluasi dan menilai tingkat kesesuaian, keakuratan fakta, serta kecukupan data yang disajikan penulis untuk mendukung klaim atau simpulan dalam bacaan secara objektif.",
+                    a: "Peserta didik",
+                    b: "Mampu mengevaluasi dan menilai tingkat kesesuaian, keakuratan fakta, serta kecukupan data",
+                    c: "Dengan bersikap kritis terhadap klaim atau simpulan dalam berbagai jenis teks informasi",
+                    d: "Secara objektif dan disertai alasan yang logis"
+                },
+                trik: {
+                    langkah: [
+                        "<strong>Uji Keakuratan</strong>: Cek apakah klaim penulis didukung data konkret (angka statistik, hasil riset lembaga kredibel, fakta ilmiah) atau hanya berupa opini sepihak / generalisasi berlebihan (menggunakan kata mutlak seperti <em>pasti, semua, 100% menyembuhkan</em>).",
+                        "<strong>Uji Kecukupan</strong>: Periksa apakah informasi dalam teks sudah menjawab seluruh pertanyaan judul atau tujuan teks (misalnya judul menjanjikan '3 Cara Mencegah...', tetapi isi teks baru menjelaskan 1 cara).",
+                        "<strong>Uji Kesesuaian</strong>: Bandingkan apakah simpulan di akhir teks selaras dengan data yang dipaparkan di awal."
+                    ],
+                    kataKunci: "Kelemahan isi teks, kecukupan informasi, keakuratan pernyataan, bukti pendukung klaim, evaluasi bacaan.",
+                    jebakan: "Mudah percaya pada kalimat yang terdengar meyakinkan padahal tidak memiliki dasar data atau bertentangan dengan logika fakta."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Iklan / Artikel Kesehatan",
+                        judulTeks: "Klaim Ramuan Herbal Ajaib",
+                        bacaan: "Sebuah unggahan di media sosial mengklaim bahwa meminum air rebusan daun sirih merah setiap pagi dijamin 100% menyembuhkan segala jenis penyakit kronis dalam waktu tiga hari tanpa perlu berkonsultasi ke dokter. Penulis unggahan tersebut hanya menyertakan kesaksian dari satu orang tetangganya sebagai bukti keberhasilan.",
+                        pertanyaan: "Evaluasi yang paling tepat terhadap keakuratan dan kecukupan bukti pada informasi tersebut adalah ....",
+                        opsi: [
+                            "Informasi sangat akurat karena sudah dibuktikan langsung oleh pengalaman tetangga penulis.",
+                            "Informasi kurang akurat dan tidak memadai karena hanya bersandar pada satu testimoni tanpa uji klinis medis.",
+                            "Informasi sudah cukup lengkap karena menyebutkan takaran waktu minum selama tiga hari berturut-turut.",
+                            "Informasi dapat dipercaya sepenuhnya karena daun sirih merah merupakan tanaman herbal alami."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Pengalaman satu orang (anekdot) tidak dapat dijadikan bukti ilmiah untuk klaim medis." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Klaim mutlak ('100% menyembuhkan segala jenis penyakit kronis') tidak didukung bukti riset/uji klinis yang valid dan hanya mengandalkan satu testimoni subjektif, sehingga tidak akurat dan berbahaya jika dipercaya tanpa saran medis." },
+                            { opsi: "C", benar: false, alasan: "Menyebutkan durasi tiga hari tidak membuat klaim medis menjadi akurat." },
+                            { opsi: "D", benar: false, alasan: "Bahan alami tetap memerlukan dosis dan penelitian klinis untuk membuktikan efektivitasnya." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Prosedur / Panduan",
+                        judulTeks: "Panduan Praktis Membuat Kompos Cair di Rumah",
+                        bacaan: "Untuk mengurangi sampah organik dapur, kita dapat membuat pupuk organik cair sendiri. Siapkan ember bertutup rapat, sisa potongan sayur dan buah, air cucian beras, serta larutan bioaktivator (EM4). Masukkan semua bahan ke dalam ember, aduk rata, lalu tutup rapat selama dua minggu hingga proses fermentasi selesai dan pupuk siap digunakan.",
+                        pertanyaan: "Jika dinilai dari aspek kecukupan informasi bagi pemula yang baru pertama kali mempraktikkannya, informasi penting apa yang masih kurang dalam teks tersebut?",
+                        opsi: [
+                            "Penjelasan mengenai manfaat pupuk kompos bagi kesuburan tanaman.",
+                            "Takaran atau perbandingan komposisi masing-masing bahan yang dicampurkan.",
+                            "Jenis wadah yang digunakan untuk menampung bahan-bahan organik.",
+                            "Lama waktu penyimpanan ember selama proses fermentasi berlangsung."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Manfaat tidak wajib ada pada teks prosedur singkat, sedangkan takaran bahan adalah elemen krusial dalam prosedur." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Dalam teks prosedur pembuatan larutan/fermentasi, ketiadaan takaran/ukuran (berapa liter air, berapa tutup botol EM4, berapa gram sampah) membuat pembaca pemula kesulitan mempraktikkannya dengan akurat." },
+                            { opsi: "C", benar: false, alasan: "Jenis wadah sudah disebutkan secara jelas ('ember bertutup rapat')." },
+                            { opsi: "D", benar: false, alasan: "Lama waktu fermentasi sudah disebutkan ('selama dua minggu')." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Laporan Singkat",
+                        judulTeks: "Minat Baca Pelajar di Perpustakaan Daerah",
+                        bacaan: "Berdasarkan data kunjungan Perpustakaan Daerah Kota Melati, jumlah pengunjung pelajar meningkat sebesar 30% pada bulan Oktober dibandingkan bulan September. Peningkatan ini terjadi setelah pihak perpustakaan menyediakan akses Wi-Fi gratis dan memperbarui koleksi novel fiksi remaja. Dengan demikian, dapat disimpulkan bahwa seluruh pelajar di Indonesia kini lebih gemar membaca buku cetak dibandingkan bermain gawai.",
+                        pertanyaan: "Kritik yang paling tepat terhadap ketepatan simpulan pada kalimat terakhir bacaan tersebut adalah ....",
+                        opsi: [
+                            "Simpulan terlalu menggeneralisasi karena data hanya berasal dari satu perpustakaan kota dalam kurun waktu satu bulan.",
+                            "Simpulan sudah sangat tepat karena kenaikan pengunjung 30% membuktikan hilangnya ketergantungan pada gawai.",
+                            "Data kenaikan pengunjung tidak relevan dengan penambahan koleksi novel fiksi remaja.",
+                            "Simpulan seharusnya menyatakan bahwa layanan Wi-Fi gratis tidak diminati oleh kalangan pelajar."
+                        ],
+                        kunci: 0,
+                        pembahasan: [
+                            { opsi: "A", benar: true, alasan: "TEPAT! Penulis melakukan kesalahan logika generalisasi berlebihan (overgeneralization): data satu perpustakaan di satu kota selama satu bulan tidak cukup untuk menyimpulkan kondisi 'seluruh pelajar di Indonesia', apalagi kunjungan bisa saja dipicu oleh Wi-Fi gratis." },
+                            { opsi: "B", benar: false, alasan: "Kenaikan 30% di satu kota tidak bisa digeneralisasi ke skala nasional." },
+                            { opsi: "C", benar: false, alasan: "Penambahan koleksi buku memang relevan dengan kunjungan perpustakaan." },
+                            { opsi: "D", benar: false, alasan: "Bertentangan dengan data teks." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 8,
+                kompetensi: "3. Evaluasi dan Apresiasi",
+                badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+                subkompetensi: "Menghubungkan dan menilai relevansi peristiwa dalam teks dengan kehidupan sehari-hari.",
+                tp: {
+                    full: "Setelah memahami gagasan dan peristiwa dalam teks fiksi maupun nonfiksi, peserta didik mampu merefleksikan, menghubungkan, dan menilai relevansi (keterkaitan) isi bacaan dengan pengalaman pribadi, fenomena sosial, serta pemecahan masalah dalam kehidupan sehari-hari secara bermakna.",
+                    a: "Peserta didik",
+                    b: "Mampu merefleksikan, menghubungkan, dan menilai relevansi (keterkaitan) isi bacaan dengan kehidupan sehari-hari",
+                    c: "Setelah memahami gagasan dan peristiwa dalam teks fiksi maupun nonfiksi",
+                    d: "Secara bermakna dan aplikatif untuk pemecahan masalah nyata"
+                },
+                trik: {
+                    langkah: [
+                        "Sari-patikan <strong>inti masalah atau prinsip utama</strong> dari teks (contoh: teks membahas bahaya menunda pekerjaan / prokrastinasi).",
+                        "Proyeksikan prinsip tersebut ke dalam <strong>situasi nyata di lingkungan sekolah, rumah, atau masyarakat</strong> saat ini.",
+                        "Pilih penerapan tindakan yang <strong>paling konkret, positif, dan langsung memecahkan masalah</strong> serupa di kehidupan sehari-hari."
+                    ],
+                    kataKunci: "Penerapan dalam kehidupan sehari-hari, relevansi peristiwa teks, tindakan nyata yang mencerminkan isi bacaan.",
+                    jebakan: "Memilih tindakan yang hanya meniru permukaan cerita secara harfiah (tidak kontekstual) atau tidak nyambung dengan pesan utama bacaan."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Nonfiksi (Psikologi Belajar)",
+                        judulTeks: "Teknik Pomodoro untuk Mengatasi Kelelahan Belajar",
+                        bacaan: "Belajar selama berjam-jam tanpa jeda sering kali menurunkan daya konsentrasi otak dan memicu kejenuhan. Teknik Pomodoro menawarkan solusi dengan membagi waktu belajar menjadi interval fokus selama 25 menit, diikuti istirahat singkat selama 5 menit untuk meregangkan tubuh atau minum air putih. Setelah empat kali siklus, pelajar disarankan beristirahat lebih lama sekitar 15–30 menit.",
+                        pertanyaan: "Penerapan isi bacaan tersebut yang paling relevan dalam kehidupan sehari-hari seorang pelajar adalah ....",
+                        opsi: [
+                            "Begadang semalam suntuk menjelang ujian agar seluruh materi buku selesai dibaca sekaligus.",
+                            "Mengatur pengatur waktu (timer) 25 menit saat mengerjakan tugas rumah, lalu beristirahat 5 menit tanpa membuka media sosial yang menyita waktu.",
+                            "Belajar sambil menonton televisi agar otak tidak merasa jenuh selama tiga jam penuh.",
+                            "Mengganti seluruh jam pelajaran di sekolah menjadi waktu istirahat setiap lima menit sekali."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Begadang tanpa jeda justru bertentangan dengan prinsip manajemen energi otak pada teks." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Mengatur timer 25 menit fokus dan 5 menit jeda istirahat singkat saat mengerjakan PR adalah bentuk aplikasi nyata Teknik Pomodoro dalam rutinitas pelajar." },
+                            { opsi: "C", benar: false, alasan: "Belajar sambil menonton televisi justru memecah fokus (multitasking), bukan fokus 25 menit." },
+                            { opsi: "D", benar: false, alasan: "Penerapan yang tidak realistis terhadap sistem jadwal sekolah." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Cerpen)",
+                        judulTeks: "Kerja Bakti di Gang Kenanga",
+                        bacaan: "Selama bertahun-tahun, saluran air di Gang Kenanga tersumbat oleh tumpukan plastik dan sedimen lumpur karena warga saling mengandalkan petugas kebersihan. Ketika hujan deras mengguyur semalaman, air meluap masuk ke teras rumah warga. Akhirnya, Ketua RT mengajak seluruh warga bergotong royong membersihkan selokan setiap Minggu pagi dan sepakat memasang saringan sampah di tiap ujung saluran.",
+                        pertanyaan: "Relevansi peristiwa dalam cerita tersebut dengan fenomena kehidupan bermasyarakat di lingkungan perkotaan saat ini adalah ....",
+                        opsi: [
+                            "Banjir di permukiman sering terjadi akibat kesadaran warga menjaga kebersihan lingkungan masih rendah dan terlalu bergantung pada petugas.",
+                            "Petugas kebersihan kota harus bekerja lembur setiap hari Minggu agar warga tidak perlu melakukan kerja bakti.",
+                            "Pemasangan saringan sampah hanya efektif dilakukan di desa terpencil yang belum memiliki saluran air.",
+                            "Hujan deras merupakan satu-satunya penyebab genangan air yang tidak dapat dicegah oleh masyarakat."
+                        ],
+                        kunci: 0,
+                        pembahasan: [
+                            { opsi: "A", benar: true, alasan: "TEPAT! Peristiwa dalam cerita mencerminkan realitas sosial di banyak permukiman kota: kebiasaan membuang sampah sembarangan dan sikap pasif menunggu petugas memicu banjir lokal yang sebenarnya bisa dicegah lewat gotong royong." },
+                            { opsi: "B", benar: false, alasan: "Justru bertentangan dengan nilai kemandirian dan gotong royong dalam cerita." },
+                            { opsi: "C", benar: false, alasan: "Pemasangan saringan sampah justru sangat relevan diterapkan di lingkungan permukiman kota." },
+                            { opsi: "D", benar: false, alasan: "Teks menunjukkan bahwa tersumbatnya saluran oleh plastik adalah faktor pemicu utama." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Nonfiksi (Gaya Hidup & Lingkungan)",
+                        judulTeks: "Jejak Karbon dari Limbah Makanan (Food Waste)",
+                        bacaan: "Banyak orang tidak menyadari bahwa membuang sisa makanan yang tidak habis dikonsumsi turut menyumbang emisi gas metana di tempat pembuangan akhir. Selain membuang energi dan air yang digunakan selama proses produksi pangan, kebiasaan mengambil porsi makan berlebihan juga berdampak pada pemborosan anggaran rumah tangga.",
+                        pertanyaan: "Tindakan sehari-hari di kantin sekolah atau di rumah yang paling mencerminkan pemahaman terhadap teks tersebut adalah ....",
+                        opsi: [
+                            "Membeli berbagai jenis makanan sekaligus agar terlihat dermawan kepada teman.",
+                            "Mengambil porsi nasi dan lauk secukupnya sesuai kapasitas perut agar habis tanpa sisa.",
+                            "Membuang sisa makanan ke saluran air agar tidak menumpuk di tempat sampah.",
+                            "Menyimpan makanan sisa di meja makan selama berminggu-minggu tanpa dimakan."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Membeli berlebihan berisiko menimbulkan sisa makanan (food waste)." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Mengambil porsi makan secukupnya hingga habis adalah tindakan nyata mencegah food waste, menghemat biaya, dan mengurangi emisi limbah organik." },
+                            { opsi: "C", benar: false, alasan: "Membuang sisa makanan ke saluran air justru menyebabkan penyumbatan dan pencemaran." },
+                            { opsi: "D", benar: false, alasan: "Makanan akan membusuk dan tetap berakhir menjadi limbah." }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 9,
+                kompetensi: "3. Evaluasi dan Apresiasi",
+                badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+                subkompetensi: "Menanggapi isi teks secara emosional atau estetis (termasuk penggunaan ungkapan/bahasa kias dan puisi).",
+                tp: {
+                    full: "Melalui kegiatan membaca dan mengapresiasi karya sastra (puisi, cerpen, maupun teks bermajas), peserta didik mampu menanggapi keindahan bahasa (estetika), menafsirkan makna ungkapan dan bahasa kias (majas/simbol), serta mengungkapkan respons emosional yang dibangun penulis dengan kepekaan rasa yang mendalam.",
+                    a: "Peserta didik",
+                    b: "Mampu menanggapi keindahan bahasa (estetika), menafsirkan makna ungkapan/bahasa kias, serta mengungkapkan respons emosional",
+                    c: "Melalui kegiatan membaca dan mengapresiasi karya sastra (puisi, cerpen, maupun teks bermajas)",
+                    d: "Dengan kepekaan rasa dan ketepatan interpretasi makna"
+                },
+                trik: {
+                    langkah: [
+                        "Jangan pernah mengartikan <strong>puisi, ungkapan (idiom), atau majas secara harfiah (makna kamus)</strong>; carilah makna konotatif/simbolis di baliknya.",
+                        "Kenali jenis majas utama: <strong>Personifikasi</strong> (benda mati berperilaku seperti manusia), <strong>Metafora</strong> (perbandingan langsung), <strong>Hiperbola</strong> (melebih-lebihkan), dan <strong>Simile</strong> (menggunakan kata <em>bagai, seperti, laksana</em>).",
+                        "Rasakan <strong>nada (tone) dan citraan</strong> penyair (sedih, rindu, semangat perjuangan, syukur) melalui pilihan diksi yang puitis."
+                    ],
+                    kataKunci: "Makna kias/simbolis, maksud ungkapan, jenis majas, citraan puisi, perasaan/emosi yang tergambar, keindahan bahasa.",
+                    jebakan: "Memilih jawaban yang mengartikan kata kias secara literal/apa adanya (misalnya 'tangan kanan' diartikan sebagai anggota tubuh sebelah kanan)."
+                },
+                soal: [
+                    {
+                        tipeTeks: "Teks Sastra (Puisi)",
+                        judulTeks: "Pelita di Ujung Senja",
+                        bacaan: "<em>Guruku,<br>Engkau adalah pelita di tengah gulita,<br>Menyala tanpa lelah membakar diri,<br>Menerangi jalan-jalan sunyi kami,<br>Hingga kami mampu mengeja cakrawala.</em>",
+                        pertanyaan: "Makna kias frasa 'pelita di tengah gulita' dan 'mengeja cakrawala' dalam kutipan puisi tersebut secara berurutan adalah ....",
+                        opsi: [
+                            "lampu minyak di malam hari; membaca buku di lapangan luas",
+                            "pemberi ilmu di tengah ketidaktahuan; memahami luasnya pengetahuan dunia",
+                            "api unggun di tengah hutan; melihat garis batas langit dan laut",
+                            "penjaga sekolah di malam hari; menghafal nama-nama planet"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Ini adalah pemaknaan secara harfiah/literal, bukan makna kias puisi." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Dalam puisi tersebut, 'pelita' melambangkan guru sebagai sumber cahaya ilmu, 'gulita' melambangkan kebodohan/ketidaktahuan, dan 'mengeja cakrawala' melambangkan kemampuan memahami wawasan dunia yang luas." },
+                            { opsi: "C", benar: false, alasan: "Pemaknaan literal yang tidak sesuai dengan konteks penghormatan kepada guru." },
+                            { opsi: "D", benar: false, alasan: "Tidak sesuai dengan makna simbolis puisi." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Prosa Liris)",
+                        judulTeks: "Senandung Alam Pegunungan",
+                        bacaan: "Angin pegunungan berbisik lembut di sela-sela pucuk pinus, seolah menyapa para pendaki yang kelelahan. Kabut pagi perlahan menari-nari memeluk puncak bukit, sementara mentari tersenyum hangat membangunkan embun yang masih terlelap di atas dedaunan.",
+                        pertanyaan: "Keindahan estetis (gaya bahasa) yang paling dominan digunakan penulis untuk menghidupkan suasana dalam paragraf tersebut adalah ....",
+                        opsi: [
+                            "Majas hiperbola, karena melebih-lebihkan ketinggian puncak bukit secara tidak masuk akal.",
+                            "Majas personifikasi, karena menggambarkan unsur alam (angin, kabut, mentari) seolah memiliki sifat dan perilaku seperti manusia.",
+                            "Majas ironi, karena menyindir para pendaki yang kelelahan saat menaiki gunung.",
+                            "Majas repetisi, karena mengulang kata yang sama pada setiap awal kalimat."
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Tidak ada pernyataan yang melebih-lebihkan secara ekstrem." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Penulis menggunakan majas personifikasi ('angin berbisik menyapa', 'kabut menari-nari memeluk', 'mentari tersenyum membangunkan embun') sehingga alam terasa hidup, hangat, dan akrab dengan pembaca." },
+                            { opsi: "C", benar: false, alasan: "Tidak ada unsur sindiran dalam teks." },
+                            { opsi: "D", benar: false, alasan: "Tidak terdapat pengulangan kata yang sama di awal kalimat." }
+                        ]
+                    },
+                    {
+                        tipeTeks: "Teks Fiksi (Cerpen dengan Ungkapan)",
+                        judulTeks: "Buah Kerja Keras",
+                        bacaan: "Sejak ayahnya jatuh sakit, Arfan menjadi <strong>tulang punggung</strong> keluarga. Setiap pulang sekolah, ia membantu ibunya berjualan kue tanpa pernah mengeluh. Berkat kegigihannya, usaha kecil mereka berkembang pesat dan Arfan berhasil lulus dengan nilai terbaik sehingga menjadi <strong>buah bibir</strong> warga sekampung.",
+                        pertanyaan: "Makna ungkapan 'tulang punggung' dan 'buah bibir' dalam kutipan teks tersebut adalah ....",
+                        opsi: [
+                            "bagian tubuh yang sakit; makanan manis kesukaan warga",
+                            "penopang utama kehidupan ekonomi; bahan pembicaraan yang dibanggakan",
+                            "pemimpin rapat warga; orang yang gemar membicarakan orang lain",
+                            "anak yang paling tua; hadiah atas keberhasilan usaha"
+                        ],
+                        kunci: 1,
+                        pembahasan: [
+                            { opsi: "A", benar: false, alasan: "Pemaknaan secara harfiah." },
+                            { opsi: "B", benar: true, alasan: "TEPAT! Ungkapan 'tulang punggung' bermakna pihak yang menjadi sandaran/penopang utama nafkah keluarga, sedangkan 'buah bibir' bermakna sesuatu/seseorang yang ramai diperbincangkan (dalam konteks ini karena prestasinya)." },
+                            { opsi: "C", benar: false, alasan: "Tidak sesuai dengan konteks kalimat." },
+                            { opsi: "D", benar: false, alasan: "Makna kedua ungkapan kurang tepat." }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // State Aplikasi
+        let currentIndex = 0;
+        let userAnswers = {}; // Format: { "subId-qIdx": selectedOptionIndex }
+        let revealedExplanations = {}; // Format: { "subId-qIdx": boolean }
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSidebarMenu();
+            renderMobileSelect();
+            selectSubcompetency(0);
+            lucide.createIcons();
+        });
+
+        // Render Menu Sidebar Desktop
+        function renderSidebarMenu() {
+            const container = document.getElementById('competency-menu');
+            const groups = {};
+
+            literasiDatabase.forEach((item, idx) => {
+                if (!groups[item.kompetensi]) {
+                    groups[item.kompetensi] = [];
+                }
+                groups[item.kompetensi].push({ ...item, idx });
+            });
+
+            let html = '';
+            for (const [compName, items] of Object.entries(groups)) {
+                html += `
+                    <div class="space-y-1.5">
+                        <div class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 rounded-lg">
+                            ${compName}
+                        </div>
+                        <div class="space-y-1 pl-1">
+                            ${items.map(item => `
+                                <button onclick="selectSubcompetency(${item.idx}); closeMobileMenu();"
+                                    id="nav-btn-${item.idx}"
+                                    class="w-full text-left px-3 py-2.5 rounded-xl text-xs leading-snug transition flex items-start gap-2.5 border border-transparent hover:bg-slate-50 text-slate-600">
+                                    <span class="font-bold text-indigo-600 shrink-0 mt-0.5">${item.idx + 1}.</span>
+                                    <span>${item.subkompetensi}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // Render Dropdown Mobile
+        function renderMobileSelect() {
+            const select = document.getElementById('mobile-subcomp-select');
+            select.innerHTML = literasiDatabase.map((item, idx) => `
+                <option value="${idx}">[${item.kompetensi.split('.')[0]}] ${idx + 1}. ${item.subkompetensi}</option>
+            `).join('');
+        }
+
+        // Pilih Subkompetensi
+        function selectSubcompetency(index) {
+            currentIndex = index;
+            const data = literasiDatabase[index];
+
+            // Update Active State Sidebar
+            literasiDatabase.forEach((_, idx) => {
+                const btn = document.getElementById(`nav-btn-${idx}`);
+                if (btn) {
+                    if (idx === index) {
+                        btn.className = "w-full text-left px-3 py-2.5 rounded-xl text-xs leading-snug transition flex items-start gap-2.5 bg-indigo-50 border border-indigo-200 text-indigo-900 font-semibold shadow-xs";
+                    } else {
+                        btn.className = "w-full text-left px-3 py-2.5 rounded-xl text-xs leading-snug transition flex items-start gap-2.5 border border-transparent hover:bg-slate-50 text-slate-600";
+                    }
+                }
+            });
+
+            // Sync Mobile Select
+            const mobileSelect = document.getElementById('mobile-subcomp-select');
+            if (mobileSelect) mobileSelect.value = index;
+
+            // Update Header Card
+            const badgeComp = document.getElementById('badge-kompetensi');
+            badgeComp.textContent = data.kompetensi;
+            badgeComp.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${data.badgeColor}`;
+            document.getElementById('badge-nomor').textContent = `Subkompetensi ${index + 1} dari ${literasiDatabase.length}`;
+            document.getElementById('title-subkompetensi').textContent = data.subkompetensi;
+
+            // Update Tujuan Pembelajaran (ABCD)
+            document.getElementById('tp-full-text').textContent = data.tp.full;
+            document.getElementById('tp-a').textContent = data.tp.a;
+            document.getElementById('tp-b').textContent = data.tp.b;
+            document.getElementById('tp-c').textContent = data.tp.c;
+            document.getElementById('tp-d').textContent = data.tp.d;
+
+            // Update Trik & Strategi
+            document.getElementById('trik-langkah').innerHTML = data.trik.langkah
+                .map(step => `<li class="pl-1 leading-relaxed">${step}</li>`)
+                .join('');
+            document.getElementById('trik-katakunci').textContent = data.trik.kataKunci;
+            document.getElementById('trik-jebakan').textContent = data.trik.jebakan;
+
+            // Render Soal
+            renderQuestions();
+
+            // Update Prev/Next Buttons
+            document.getElementById('btn-prev').disabled = (index === 0);
+            document.getElementById('btn-next').disabled = (index === literasiDatabase.length - 1);
+
+            // Update Toggle All Explanations Button Text
+            updateToggleAllButton();
+        }
+
+        // Render 3 Butir Soal Interaktif
+        function renderQuestions() {
+            const data = literasiDatabase[currentIndex];
+            const container = document.getElementById('questions-container');
+            const optionLetters = ['A', 'B', 'C', 'D'];
+
+            container.innerHTML = data.soal.map((q, qIdx) => {
+                const key = `${currentIndex}-${qIdx}`;
+                const selectedOpt = userAnswers[key];
+                const isAnswered = selectedOpt !== undefined;
+                const isExpVisible = !!revealedExplanations[key];
+
+                // Format bacaan (jika ada newline)
+                const formattedBacaan = q.bacaan.split('\n').map(p => `<p class="mb-2 last:mb-0">${p}</p>`).join('');
+
+                return `
+                    <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                        <!-- Top Bar Soal -->
+                        <div class="bg-slate-50 border-b border-slate-200/80 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-xs">
+                                    ${qIdx + 1}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">${q.tipeTeks}</span>
+                            </div>
+                            ${isAnswered ? `
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${selectedOpt === q.kunci ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                    <i data-lucide="${selectedOpt === q.kunci ? 'check-circle-2' : 'x-circle'}" class="w-3.5 h-3.5"></i>
+                                    ${selectedOpt === q.kunci ? 'Jawaban Benar!' : 'Kurang Tepat'}
+                                </span>
+                            ` : '<span class="text-xs text-slate-400 italic">Pilih salah satu jawaban</span>'}
+                        </div>
+
+                        <div class="p-5 sm:p-6 space-y-5">
+                            <!-- Stimulus Bacaan -->
+                            <div class="bg-slate-50/90 border-l-4 border-indigo-500 rounded-r-xl p-4 sm:p-5">
+                                <h4 class="font-bold text-slate-900 text-sm mb-2 font-sans">${q.judulTeks}</h4>
+                                <div class="font-serif text-slate-700 text-sm sm:text-[15px] leading-relaxed">
+                                    ${formattedBacaan}
+                                </div>
+                            </div>
+
+                            <!-- Pertanyaan -->
+                            <div>
+                                <p class="font-semibold text-slate-900 text-sm sm:text-base leading-snug">
+                                    ${q.pertanyaan}
+                                </p>
+                            </div>
+
+                            <!-- Pilihan Jawaban (A, B, C, D) -->
+                            <div class="space-y-2.5">
+                                ${q.opsi.map((optText, oIdx) => {
+                                    let btnStyle = "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 text-slate-700";
+                                    let badgeStyle = "bg-slate-100 text-slate-700 border-slate-300";
+                                    let statusIcon = "";
+
+                                    if (isAnswered) {
+                                        if (oIdx === q.kunci) {
+                                            btnStyle = "border-emerald-500 bg-emerald-50/80 text-emerald-950 font-medium ring-1 ring-emerald-500";
+                                            badgeStyle = "bg-emerald-600 text-white border-emerald-600";
+                                            statusIcon = `<i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 ml-auto"></i>`;
+                                        } else if (oIdx === selectedOpt && selectedOpt !== q.kunci) {
+                                            btnStyle = "border-rose-400 bg-rose-50/80 text-rose-950";
+                                            badgeStyle = "bg-rose-600 text-white border-rose-600";
+                                            statusIcon = `<i data-lucide="x" class="w-4 h-4 text-rose-600 shrink-0 ml-auto"></i>`;
+                                        } else {
+                                            btnStyle = "border-slate-200 opacity-65 text-slate-500";
+                                        }
+                                    }
+
+                                    return `
+                                        <button onclick="selectAnswer(${qIdx}, ${oIdx})"
+                                            class="w-full text-left p-3.5 rounded-xl border transition flex items-start gap-3 text-sm leading-snug ${btnStyle}">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-md border text-xs font-bold shrink-0 mt-0.5 ${badgeStyle}">
+                                                ${optionLetters[oIdx]}
+                                            </span>
+                                            <span class="flex-1">${optText}</span>
+                                            ${statusIcon}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <!-- Tombol Toggle Pembahasan Per Soal -->
+                            <div class="pt-2 flex items-center justify-between border-t border-slate-100 no-print">
+                                <button onclick="toggleExplanation(${qIdx})"
+                                    class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 py-1.5 px-3 rounded-lg hover:bg-indigo-50 transition">
+                                    <i data-lucide="${isExpVisible ? 'eye-off' : 'book-open'}" class="w-4 h-4"></i>
+                                    <span>${isExpVisible ? 'Sembunyikan Pembahasan' : 'Tampilkan Pembahasan & Kunci'}</span>
+                                </button>
+                            </div>
+
+                            <!-- Kotak Pembahasan Detail -->
+                            <div class="${isExpVisible ? 'block' : 'hidden'} print-only bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 sm:p-5 space-y-3">
+                                <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm border-b border-emerald-200/70 pb-2">
+                                    <i data-lucide="award" class="w-4 h-4 text-emerald-600"></i>
+                                    <span>Kunci Jawaban: ${optionLetters[q.kunci]}</span>
+                                </div>
+                                <div class="space-y-2 text-xs sm:text-sm">
+                                    ${q.pembahasan.map(item => `
+                                        <div class="p-2.5 rounded-lg ${item.benar ? 'bg-emerald-100/80 border border-emerald-300 text-emerald-950' : 'bg-white/80 border border-slate-200/70 text-slate-700'}">
+                                            <span class="font-bold ${item.benar ? 'text-emerald-800' : 'text-rose-700'}">
+                                                Opsi ${item.opsi} (${item.benar ? 'BENAR' : 'Salah'}):
+                                            </span>
+                                            <span>${item.alasan}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Pilih Jawaban Siswa
+        function selectAnswer(qIdx, oIdx) {
+            const key = `${currentIndex}-${qIdx}`;
+            userAnswers[key] = oIdx;
+            // Otomatis buka pembahasan saat pengguna memilih jawaban agar langsung belajar
+            revealedExplanations[key] = true;
+            renderQuestions();
+            updateToggleAllButton();
+        }
+
+        // Toggle Pembahasan Per Soal
+        function toggleExplanation(qIdx) {
+            const key = `${currentIndex}-${qIdx}`;
+            revealedExplanations[key] = !revealedExplanations[key];
+            renderQuestions();
+            updateToggleAllButton();
+        }
+
+        // Toggle Semua Pembahasan pada Subkompetensi Aktif
+        function toggleAllExplanations() {
+            const data = literasiDatabase[currentIndex];
+            const allVisible = data.soal.every((_, qIdx) => !!revealedExplanations[`${currentIndex}-${qIdx}`]);
+            const targetState = !allVisible;
+
+            data.soal.forEach((_, qIdx) => {
+                revealedExplanations[`${currentIndex}-${qIdx}`] = targetState;
+            });
+
+            renderQuestions();
+            updateToggleAllButton();
+        }
+
+        function updateToggleAllButton() {
+            const data = literasiDatabase[currentIndex];
+            const allVisible = data.soal.every((_, qIdx) => !!revealedExplanations[`${currentIndex}-${qIdx}`]);
+            const btn = document.getElementById('btn-toggle-all-exp');
+            if (btn) {
+                btn.innerHTML = allVisible
+                    ? `<i data-lucide="eye-off" class="w-3.5 h-3.5"></i><span>Sembunyikan Semua Pembahasan</span>`
+                    : `<i data-lucide="eye" class="w-3.5 h-3.5"></i><span>Tampilkan Semua Pembahasan</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        // Reset Jawaban pada Subkompetensi Aktif
+        function resetQuiz() {
+            const data = literasiDatabase[currentIndex];
+            data.soal.forEach((_, qIdx) => {
+                const key = `${currentIndex}-${qIdx}`;
+                delete userAnswers[key];
+                delete revealedExplanations[key];
+            });
+            renderQuestions();
+            updateToggleAllButton();
+            showToast("Jawaban latihan pada subkompetensi ini telah direset.");
+        }
+
+        // Navigasi Prev / Next
+        function navigateSubcomp(step) {
+            const nextIdx = currentIndex + step;
+            if (nextIdx >= 0 && nextIdx < literasiDatabase.length) {
+                selectSubcompetency(nextIdx);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Toggle Mobile Drawer Menu
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar-nav');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function closeMobileMenu() {
+            if (window.innerWidth < 1024) {
+                document.getElementById('sidebar-nav').classList.add('hidden');
+            }
+        }
+
+        // Fungsi Helper Copy ke Clipboard menggunakan execCommand (aman di iFrame)
+        function copyTextToClipboard(text, successMessage) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMessage);
+            } catch (err) {
+                showToast("Gagal menyalin teks. Silakan salin secara manual.");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Salin Tujuan Pembelajaran Saja
+        function copyTP() {
+            const data = literasiDatabase[currentIndex];
+            const text = `Kompetensi: ${data.kompetensi}\nSubkompetensi: ${data.subkompetensi}\n\nTujuan Pembelajaran:\n${data.tp.full}`;
+            copyTextToClipboard(text, "Tujuan Pembelajaran berhasil disalin ke clipboard!");
+        }
+
+        // Salin Seluruh Materi Subkompetensi (Untuk Modul Ajar / RPP)
+        function copyAllMaterial() {
+            const data = literasiDatabase[currentIndex];
+            const letters = ['A', 'B', 'C', 'D'];
+            let text = `====================================================\n`;
+            text += `PERANGKAT AJAR & BANK SOAL LITERASI\n`;
+            text += `====================================================\n`;
+            text += `Kompetensi Utama : ${data.kompetensi}\n`;
+            text += `Subkompetensi    : ${data.subkompetensi}\n\n`;
+            text += `A. TUJUAN PEMBELAJARAN (FORMAT ABCD)\n`;
+            text += `${data.tp.full}\n`;
+            text += `- Audience  : ${data.tp.a}\n`;
+            text += `- Behavior  : ${data.tp.b}\n`;
+            text += `- Condition : ${data.tp.c}\n`;
+            text += `- Degree    : ${data.tp.d}\n\n`;
+            text += `B. TRIK & STRATEGI MENYELESAIKAN SOAL (JURUS JITU)\n`;
+            data.trik.langkah.forEach((l, i) => {
+                text += `${i + 1}. ${l.replace(/<[^>]*>?/gm, '')}\n`;
+            });
+            text += `- Kata Kunci : ${data.trik.kataKunci}\n`;
+            text += `- Jebakan    : ${data.trik.jebakan}\n\n`;
+            text += `C. LATIHAN SOAL & PEMBAHASAN DETAIL\n`;
+
+            data.soal.forEach((q, idx) => {
+                text += `\n--- SOAL ${idx + 1} (${q.tipeTeks}) ---\n`;
+                text += `Judul: ${q.judulTeks}\n`;
+                text += `Bacaan:\n${q.bacaan.replace(/<[^>]*>?/gm, '')}\n\n`;
+                text += `Pertanyaan:\n${q.pertanyaan}\n`;
+                q.opsi.forEach((o, oIdx) => {
+                    text += `${letters[oIdx]}. ${o}\n`;
+                });
+                text += `\nKunci Jawaban: ${letters[q.kunci]}\n`;
+                text += `Pembahasan:\n`;
+                q.pembahasan.forEach(p => {
+                    text += `- Opsi ${p.opsi} (${p.benar ? 'BENAR' : 'Salah'}): ${p.alasan}\n`;
+                });
+            });
+
+            copyTextToClipboard(text, "Seluruh perangkat TP, Trik, Soal & Pembahasan berhasil disalin!");
+        }
+
+        // Notifikasi Toast
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto";
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
